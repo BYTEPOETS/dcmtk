@@ -329,8 +329,25 @@ OFBool DcmPixelSequence::canWriteXfer(const E_TransferSyntax newXfer,
                                       const E_TransferSyntax oldXfer)
 {
     DcmXfer newXferSyn(newXfer);
-
-    return newXferSyn.isEncapsulated() && newXfer == oldXfer && oldXfer == Xfer;
+    
+	OFBool result = newXferSyn.isEncapsulated() && newXfer == oldXfer && oldXfer == Xfer;
+	
+	if( result)
+		return result;
+	
+	if( newXfer == EXS_JPEG2000 && oldXfer == EXS_JPEG2000LosslessOnly)
+		return OFTrue;
+		
+	if( newXfer == EXS_JPEG2000LosslessOnly && oldXfer == EXS_JPEG2000)
+		return OFTrue;
+	
+    if( newXfer == EXS_JPEGLSLossy && oldXfer == EXS_JPEGLSLossless)
+		return OFTrue;
+    
+	if( newXfer == EXS_JPEGLSLossless && oldXfer == EXS_JPEGLSLossy)
+		return OFTrue;
+    
+	return result;
 }
 
 

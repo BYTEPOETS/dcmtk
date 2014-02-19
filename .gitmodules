@@ -1,0 +1,3 @@
+[submodule "third-party/openjpeg"]
+	path = third-party/openjpeg
+	url = https://github.com/OpenJPEG/openjpeg.git

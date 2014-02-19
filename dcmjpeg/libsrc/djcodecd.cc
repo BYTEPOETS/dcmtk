@@ -135,7 +135,7 @@ OFCondition DJCodecDecoder::decode(
           if (jpegData == NULL) result = EC_CorruptedData; // JPEG data stream is empty/absent
           else
           {
-            Uint8 precision = scanJpegDataForBitDepth(jpegData, fragmentLength);
+            Uint8 precision = isJPEG2000() ? imageBitsAllocated : scanJpegDataForBitDepth(jpegData, fragmentLength);
             if (precision == 0) result = EC_CannotChangeRepresentation; // something has gone wrong, bail out
             else
             {
@@ -169,21 +169,64 @@ OFCondition DJCodecDecoder::decode(
                     result = jpeg->init();
                     if (result.good())
                     {
-                      result = EJ_Suspension;
-                      while (EJ_Suspension == result)
-                      {
-                        result = pixSeq->getItem(pixItem, OFstatic_cast(Uint32, currentItem++));
-                        if (result.good())
-                        {
-                          fragmentLength = pixItem->getLength();
-                          result = pixItem->getUint8Array(jpegData);
-                          if (result.good())
-                          {
-                            result = jpeg->decode(jpegData, fragmentLength, imageData8, OFstatic_cast(Uint32, frameSize), isSigned);
-                          }
-                        }
-                      }
-                      if (result.good())
+
+                    result = EJ_Suspension;
+
+					// for open jpeg, we need to pack all fragments into a single congiuous buffer
+					if (isJPEG2000() && pixSeq->card() > 2)  {
+
+						struct BufferInfo {
+							Uint8* buf;
+							Uint32 len;
+						};
+						BufferInfo* buffers = new BufferInfo[pixSeq->card()];
+						memset(buffers, 0, sizeof(BufferInfo) * pixSeq->card());
+						Uint32 totalLength =0;
+						int i = 0;
+						while (currentItem < pixSeq->card())
+						{
+							result = pixSeq->getItem(pixItem, currentItem++);
+							if (result.good())
+							{
+								fragmentLength = pixItem->getLength();
+								totalLength += fragmentLength;
+								result = pixItem->getUint8Array(buffers[i].buf);
+								if (result.good())
+								{
+ 									buffers[i].len = fragmentLength;
+								}
+							}
+							i++;
+						}
+
+						jpegData = new Uint8[totalLength];
+						memset(jpegData, 0, totalLength);
+						totalLength =0;
+						for (int i = 0; i < pixSeq->card()-1; ++i) {
+							if (buffers[i].buf) {
+								memcpy(jpegData + totalLength, buffers[i].buf, buffers[i].len);
+								totalLength += buffers[i].len;
+							}
+						}
+						result = jpeg->decode(jpegData, totalLength, imageData8, frameSize, isSigned);
+
+					 } else {
+
+						  while (EJ_Suspension == result)
+						  {
+							result = pixSeq->getItem(pixItem, currentItem++);
+							if (result.good())
+							{
+							  fragmentLength = pixItem->getLength();
+							  result = pixItem->getUint8Array(jpegData);
+							  if (result.good())
+							  {
+								result = jpeg->decode(jpegData, fragmentLength, imageData8, frameSize, isSigned);
+							  }
+							}
+						  }
+	  				}
+                     if (result.good())
                       {
                         if (! createPlanarConfigurationInitialized)
                         {

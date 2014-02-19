@@ -1,3 +1,5 @@
+third-party/openjpeg-build/
+
 # Ignore all kinds of object and library files
 *.o
 *.so

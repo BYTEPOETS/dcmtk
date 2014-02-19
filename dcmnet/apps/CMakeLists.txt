@@ -25,4 +25,4 @@ ENDFOREACH(PROGRAM)
 #DCMTK_TARGET_LINK_MODULES(storescu dcmjpls dcmjpeg dcmimage)
 
 # "dcmsend" always needs compression support
-DCMTK_TARGET_LINK_MODULES(dcmsend dcmjpls dcmjpeg dcmimage)
+DCMTK_TARGET_LINK_MODULES(dcmsend dcmjpls dcmjpeg dcmimage ${DCMTK_SOURCE_DIR}/third-party/openjpeg-build/bin/Debug/openjp2.lib)

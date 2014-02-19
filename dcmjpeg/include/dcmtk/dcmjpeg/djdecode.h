@@ -33,6 +33,8 @@ class DJDecoderLossless;
 class DJDecoderP14SV1;
 class DJDecoderProgressive;
 class DJDecoderSpectralSelection;
+class DJDecoderJP2k;
+class DJDecoderJP2kLossLess;
 
 /** singleton class that registers decoders for all supported JPEG processes.
  */
@@ -51,7 +53,7 @@ public:
    */
   static void registerCodecs(
     E_DecompressionColorSpaceConversion pDecompressionCSConversion = EDC_photometricInterpretation,
-    E_UIDCreation pCreateSOPInstanceUID = EUC_default,
+    E_UIDCreation pCreateSOPInstanceUID = EUC_never,
     E_PlanarConfiguration pPlanarConfiguration = EPC_default,
     OFBool predictor6WorkaroundEnable = OFFalse);
 
@@ -88,6 +90,11 @@ private:
   /// pointer to decoder for lossless JPEG
   static DJDecoderLossless *declol;
 
+   /// pointer to decoder for JPEG 2K
+  static DJDecoderJP2k *dec2k;
+  
+   /// pointer to decoder for JPEG 2K lossless
+  static DJDecoderJP2kLossLess *dec2kLossLess;
 };
 
 #endif
